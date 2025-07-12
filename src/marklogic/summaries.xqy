@@ -16,8 +16,8 @@ declare namespace akn="http://docs.oasis-open.org/legaldocml/ns/akn/3.0";
 declare namespace tna="https://caselaw.nationalarchives.gov.uk/akn";
 
 (: parameters :)
-declare variable $sort_by as xs:string external := "name";
-declare variable $sort_direction as xs:string external := "asc";
+declare variable $sort_by as xs:string external := "date";        
+declare variable $sort_direction as xs:string external := "desc";
 
 (: construct summary data :)
 let $summaries :=
@@ -39,7 +39,7 @@ let $sorted_summaries :=
         (: sort key switch :)
         switch ($sort_by)
             case "name" return $summary/name
-            case "date" return xs:date($summary/judgmentDate) (: Cast to xs:date for correct sorting :)
+            case "date" return xs:date($summary/judgmentDate) (: cast to date :)
             case "court" return $summary/court
             case "citation" return $summary/citation
             default return xs:date($summary/judgmentDate)
