@@ -1,0 +1,93 @@
+# marklogic
+
+MarkLogic is the NoSQL database used by The National Archives (TNA) for
+it's "Find Case Law" service and is referenced widely in the TNA
+[ds-caselaw-custom-api-client](https://github.com/nationalarchives/ds-caselaw-custom-api-client) github code.
+
+This part of the repo is about setting up MarkLogic in docker and
+interacting with it to develop server-side processing of XML documents,
+much in the way one might utilise procedural SQL on a database server
+such as PostgreSQL or Oracle.
+
+## About MarkLogic
+
+According to [Wikipedia](https://en.wikipedia.org/wiki/MarkLogic), the
+MarkLogic database:
+
+> is a multi-model NoSQL database that has evolved from its XML database
+> roots to also natively store JSON documents and RDF triples for its
+> semantic data model. It uses a distributed architecture that can
+> handle hundreds of billions of documents and hundreds of terabytes of
+> data.[citation needed] MarkLogic maintains ACID consistency for
+> transactions and has a Common Criteria certification security model,
+> high availability, and disaster recovery. It is designed to run
+> on-premises within public or private cloud computing environments like
+> Amazon Web Services.
+>
+> MarkLogic's Enterprise NoSQL database platform is used in various
+> sectors, including publishing, government and finance. It is employed in
+> a number of systems currently in production.
+
+## Akoma Ntosi
+
+Based presumably from the experience of developing the
+`legislation.gov.uk` service, the Find Case Law project (another TNA
+service) uses the Akoma Ntoso XML standard. As described on [the
+Legislation.gov.uk technology-choices-factsheet.pdf](https://www.legislation.gov.uk/pdfs/projects/technology-choices-factsheet.pdf):
+
+> Akoma Ntoso is the emerging international standard for representing
+> legislation, and is less complex and easier to work with than CLML.
+> There is also a wider pool of experts and suppliers.
+
+While the factsheet shows that it was planned to use the "eXist XML
+database and Mongo JSON database" it seems that for the Find Case Law
+project [MarkLogic was selected](https://www.globalsecuritymag.fr/MarkLogic-helps-UK-National,20221108,132078.html)
+for the "The National Archives seeks to replicate, in court judgements
+and tribunal decisions, the search ability and data analysis already
+possible in their other MarkLogic-powered solutions at
+legislation.gov.uk." So perhaps MarkLogic is now used for
+legislation.gov.uk too.
+
+The (non-https) [Akoma Ntoso site](http://akomantoso.info/?page_id=25)
+gives more detail about this XML standard for parliamentary, legislative
+and judiciary documents, as does [Wikipedia](https://en.wikipedia.org/wiki/Akoma_Ntoso).
+
+## XQuery and XML
+
+[W3Schools](https://www.w3schools.com/xml/xquery_intro.asp) has a simple
+intro to XML/Xquery and XSLT which is worth a quick review if one is
+considering working with XQuery in MarkLogic (or eXist for that matter).
+
+A simple FLWOR example from the W3Schools article:
+
+```xquery
+for $x in doc("books.xml")/bookstore/book
+where $x/price>30
+order by $x/title
+return $x/title
+```
+
+Which provides the same output as
+
+```
+doc("books.xml")/bookstore/book[price>30]/title
+```
+
+## Docker
+
+Simply run:
+
+```docker
+docker run -d -it -p 8000:8000 -p 8001:8001 -p 8002:8002 \
+	progressofficial/marklogic-db
+```
+
+Then log in and set the main server username and password and save it in
+`../variables.env` (using `../variables_example.env` as a template).
+
+More information is at https://github.com/marklogic/marklogic-docker
+
+## Load content
+
+Run the `load_documents.sh` script to load documents. You need to have
+`curl` and `wget` installed.
