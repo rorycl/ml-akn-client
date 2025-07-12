@@ -1,0 +1,111 @@
+<export><workspace name="Workspace"><query name="Get examples" focus="false" listorder="1" taborder="1" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xdmp:document-get-collections("documents");</query><query name="Load doc" focus="false" listorder="2" taborder="2" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xdmp:document-load("/tmp/ewhc_ch_2025_16.xml",
+  map:map() =&gt; map:with("uri", "/documents/ewhc_ch_2025_16.xml")
+            =&gt; map:with("permissions", (xdmp:default-permissions("objects")))
+            =&gt; map:with("collections", ("examples"))
+            =&gt; map:with("repair", "full")
+)</query><query name="Each document" focus="false" listorder="3" taborder="3" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
+
+for $each in collection("examples")
+return fn:document-uri($each)</query><query name="Get single doc" focus="false" listorder="4" taborder="4" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">fn:doc("/documents/ewhc_ch_2008_1582.xml")
+</query><query name="Directory list" focus="false" listorder="5" taborder="5" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">for $each in xdmp:directory("/documents/", "infinity")
+return fn:document-uri($each)</query><query name="cts search progression" focus="false" listorder="6" taborder="6" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
+
+cts:search(fn:doc(), cts:parse("PROGRESSION"))</query><query name="local function" focus="false" listorder="7" taborder="8" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
+
+declare function local:print-word ($word as xs:string) { fn:upper-case($word) };
+
+local:print-word( ("hello", "world") )</query><query name="permissions" focus="false" listorder="8" taborder="9" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">import module namespace sec="http://marklogic.com/xdmp/security" at "/MarkLogic/security.xqy";
+declare function local:dump-perms($uri)
+{
+  for $perm in xdmp:document-get-permissions($uri)
+  let $role-name :=
+    xdmp:invoke-function(
+      function() {
+        try {
+          sec:get-role-names($perm/sec:role-id)
+        }
+        catch($ex) {("could not get perms")}   
+      }, 
+      &lt;options xmlns="xdmp:eval"&gt;
+        &lt;database&gt;{xdmp:security-database()}&lt;/database&gt;
+      &lt;/options&gt;
+    )
+  return
+    &lt;role id="{$perm/sec:role-id}" name="{$role-name}" capability="{$perm/sec:capability}"&gt;&lt;/role&gt;
+};
+local:dump-perms("/documents/ewhc_ch_2004_324.xml")</query><query name="host status" focus="false" listorder="9" taborder="10" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
+xdmp:host-status(xdmp:host("d253fdef206c.lan"))</query><query name="Summaries" focus="false" listorder="10" taborder="7" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">(:                                                                
+Iterate through all documents in the "examples" collection                                                          
+and construct a new summary XML document.                      
+:)                                                                
+                                                                      
+declare namespace akn="http://docs.oasis-open.org/legaldocml/ns/akn/3.0";                                    
+declare namespace uk="https://caselaw.nationalarchives.gov.uk/akn";                   
+                                                                      
+&lt;summaries&gt;                                                       
+{                                                                 
+      for $doc in collection("examples")                              
+      let $meta := $doc/akn:akomaNtoso/akn:judgment/akn:meta          
+      let $uri := fn:document-uri($doc)                               
+      let $name :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRname/@value           
+      let $date :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRdate[@name='judgment']/@date
+      let $court := $meta/akn:proprietary/uk:court/text()             
+      let $citation := $meta/akn:proprietary/uk:cite/text()
+      where $date&gt;"2024-01-02"
+      order by $name descending
+      return                                                          
+        &lt;summary&gt;                                                     
+          &lt;uri&gt;{$uri}&lt;/uri&gt;                                           
+          &lt;name&gt;{$name}&lt;/name&gt;                                        
+          &lt;judgmentDate&gt;{$date}&lt;/judgmentDate&gt;                        
+          &lt;court&gt;{$court}&lt;/court&gt;                                     
+          &lt;citation&gt;{$citation}&lt;/citation&gt;                            
+        &lt;/summary&gt;                                                    
+}                                                                 
+&lt;/summaries&gt; </query><query name="Summaries param 2" focus="false" listorder="11" taborder="11" active="true" database="13008473326162372718" server="12480707483033568391" database-name="Modules" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
+
+declare namespace akn="http://docs.oasis-open.org/legaldocml/ns/akn/3.0";
+declare namespace tna="https://caselaw.nationalarchives.gov.uk/akn";
+
+(: parameters :)
+declare variable $sort_by as xs:string external := "name";
+declare variable $sort_direction as xs:string external := "asc";
+
+(: construct summary data :)
+let $summaries :=
+    for $doc in collection("examples")
+    let $meta := $doc/akn:akomaNtoso/akn:judgment/akn:meta
+    return
+      &lt;summary&gt;
+        &lt;uri&gt;{fn:document-uri($doc)}&lt;/uri&gt;
+        &lt;name&gt;{$meta/akn:identification/akn:FRBRWork/akn:FRBRname/@value/string()}&lt;/name&gt;
+        &lt;judgmentDate&gt;{$meta/akn:identification/akn:FRBRWork/akn:FRBRdate[@name='judgment']/@date/string()}&lt;/judgmentDate&gt;
+        &lt;court&gt;{$meta/akn:proprietary/tna:court/text()}&lt;/court&gt;
+        &lt;citation&gt;{$meta/akn:proprietary/tna:cite/text()}&lt;/citation&gt;
+      &lt;/summary&gt;
+
+(: sort summaries by default ascending :)
+let $sorted_summaries :=
+    for $summary in $summaries
+    order by
+        (: sort key switch :)
+        switch ($sort_by)
+            case "name" return $summary/name
+            case "date" return xs:date($summary/judgmentDate) (: Cast to xs:date for correct sorting :)
+            case "court" return $summary/court
+            case "citation" return $summary/citation
+            default return xs:date($summary/judgmentDate)
+    ascending
+    return $summary
+
+(: reverse ordering if required :)
+let $final_summaries :=
+    if ($sort_direction = "desc")
+    then fn:reverse($sorted_summaries)
+    else $sorted_summaries
+
+(: wrap summaries in "summaries" root element :)
+return
+    &lt;summaries&gt;
+        {$final_summaries}
+    &lt;/summaries&gt;</query></workspace></export>
