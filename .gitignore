@@ -1,0 +1,8 @@
+# don't add local variables.env file
+src/variables.env
+
+# ignore local tmp directory for scratch info
+tmp/
+
+# ignore vim swap file etc
+./.*
