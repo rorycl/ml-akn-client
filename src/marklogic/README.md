@@ -73,6 +73,44 @@ Which provides the same output as
 doc("books.xml")/bookstore/book[price>30]/title
 ```
 
+## MarkLogic: developing server-side applications
+
+Progress software's documentation for MarkLogic can be confusing to
+navigate. I found the following resources the most useful to turn to:
+
+* **[Docs and Intro](https://docs.progress.com/bundle/marklogic-server-understand-concepts-11/page/topics/overview.html)**  
+  An intro to MarkLogic Server as part of the general documentation hub
+  [is here](https://docs.progress.com/category/marklogic-content-hub)
+  documentation.
+
+* **[XQuery and XSLT Reference
+  Guide](https://docs.progress.com/bundle/marklogic-server-xquery-xslt-reference-11/page/topics/whatis.html)**  
+  "In MarkLogic Server, XQuery and XSLT are not only used to query XML,
+  but are also used as programming languages to create applications.
+  They are especially powerful as a programming languages to create web
+  applications..."  
+  The *XPath Quick Reference* in this chapter is particularly helpful.
+
+* **[Developing Applications in MarkLogic
+  Server](https://docs.progress.com/bundle/marklogic-server-develop-server-side-apps-11/page/topics/appdev.html)**  
+  A thorough set of articles on developing server applications for
+  storing data, building applications using XQuery or server-side
+  JavaScript for search and development language, to integrate with the
+  inbuilt REST web server and other client APIs.  
+  The guide focuses primarily on the concepts, techniques and design
+  patterns used to build content and search applications in MarkLogic
+  Server.
+
+* **[Develop Using the REST API](https://docs.progress.com/bundle/marklogic-server-develop-rest-api-11/page/topics/extensions.html)**  
+  "The REST Client API provides a set of RESTful services for creating,
+  updating, retrieving, deleting and query documents and metadata..."  
+  The sections on "Manipulating Documents" and "Using and Configuring
+  Query Features" were particularly helpful for this project.
+
+* **[Product Documentation](https://docs.marklogic.com/cts:search)**  
+  Product documentation, for example for all MarkLogic built-in
+  functions such as `cts:search`.
+
 ## Docker
 
 Simply run:
