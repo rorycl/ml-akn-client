@@ -17,7 +17,7 @@ from pydantic_xml import BaseXmlModel, element
 
 class Summary(BaseXmlModel, tag="summary"):
     """
-    Summary is a simple summary of an Akomo Ntosi judicial record
+    Summary is a simple summary of an Akomo Ntosi judicial record.
     """
 
     uri: str = element()
@@ -29,13 +29,13 @@ class Summary(BaseXmlModel, tag="summary"):
 
 class Summaries(BaseXmlModel, tag="summaries"):
     """
-    Summaries is a list of Summary
+    Summaries is a list of Summary.
     """
 
     summaries: List[Summary] = element(tag="summary")
 
 
-def summaries_deserialize(xml: str) -> Summaries:
+def summaries_deserialize(xml: bytes) -> Summaries:
     """
     summaries_deserialize deserialises an xml string to a list of
     Summaries.

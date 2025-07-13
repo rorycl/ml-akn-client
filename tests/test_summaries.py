@@ -4,7 +4,7 @@ Test the summaries.Summaries xml deserializer
 
 from tna_fcl_client.models import summaries
 
-summaries_xml = r"""<?xml version="1.0"?>
+SUMMARIES_XML = b"""<?xml version="1.0"?>
 <summaries>
   <summary>
     <uri>/documents/ewca_civ_2018_2414.xml</uri>
@@ -25,6 +25,10 @@ summaries_xml = r"""<?xml version="1.0"?>
 
 
 def test_summaries():
-    s = summaries.summaries_deserialize(summaries_xml)
+    """
+    Test if SUMMARIES_XML can be deserialized into a list of two
+    Summary within a Summary.
+    """
+    s = summaries.summaries_deserialize(SUMMARIES_XML)
     assert len(s.summaries) == 2
     assert s.summaries[0].citation == "[2018] EWCA Civ 2414"
