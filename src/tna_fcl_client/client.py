@@ -15,31 +15,44 @@ from tna_fcl_client.server import marklogic as ml
 import os
 
 
-def main():
-    try:
-        client = ml.MarkLogicHTTPClient(
+class ClientException(Exception):
+    pass
+
+
+class Client:
+    def __init__(self):
+        """
+        Initialise a Client with a MarkLogic server connection configuration.
+        """
+        self.client = ml.MarkLogicHTTPClient(
             scheme="http",
             host=os.environ["ML_HOST"],
             port=int(os.environ["ML_PORT"]),
             username=os.environ["ML_USERNAME"],
             password=os.environ["ML_PASSWORD"],
         )
-        part = client.summaries(sort_by="name", sort_direction="desc")
-        print(part)
 
-    except (ml.LocalMLException, KeyError) as err:
-        print(f"An error occurred: {err}")
-        return
+    def get_summaries(
+        self, sort_by: str = "name", sort_direction: str = "desc"
+    ) -> summaries.Summaries:
+        """
+        get_summaries retrieves AKN document summaries from the
+        MarkLogic server and deserializes these into a Summeries object.
+        """
+        try:
+            part = self.client.summaries(sort_by, sort_direction)
+        except ml.LocalMLException as err:
+            raise ClientException(f"Request failed: {err}") from err
 
-    try:
-        s = summaries.summaries_deserialize(part)
-    except summaries.SummariesException as err:
-        print(f"Deserialization error occurred: {err}")
-        return
-
-    for summary in s:
-        print(summary)
+        try:
+            s = summaries.summaries_deserialize(part)
+        except summaries.SummariesException as err:
+            raise ClientException(f"Deserialisation failed: {err}") from err
+        return s
 
 
 if __name__ == "__main__":
-    main()
+    client = Client()
+    s = client.get_summaries()
+    for sm in s.summaries:
+        print(sm)

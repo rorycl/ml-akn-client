@@ -8,7 +8,7 @@ Date      : 13 July 2025
 """
 
 import requests
-from requests import RequestException
+from requests import RequestException, HTTPError
 from requests.auth import HTTPDigestAuth
 
 # needed for marklogic multipart responses
@@ -126,14 +126,13 @@ class MarkLogicHTTPClient:
                 data=payload,
                 headers={"Accept": "application/xml"},
             )
-            # immediately raise any 4xx or 5xx status code error.
-            # todo: consider moving this down to LocalMLException.
-            r.raise_for_status()
+        except requests.HTTPError as e:
+            raise LocalMLException(f"Request exception: {e}") from e
         except RequestException as e:
             raise LocalMLException(f"Request failed: {e}") from e
 
         first_multipart_part = self.decode_multipart(
-            r.content, r.headers.get("content-type", None)
+            r.content, r.headers.get("content-type", "")
         )
         return first_multipart_part
 
@@ -147,7 +146,7 @@ class MarkLogicHTTPClient:
         """
         decode_multipart decodes parts from a multipart byte sequence,
         @data: normally a request response.content
-        @content_type: normally `response.headers.get('content-type', None)`
+        @content_type: normally `response.headers.get('content-type', "")`
         @offset: the part number to return (normally 0)
         @encoding: utf-8 unless otherwise specified
         See https://github.com/requests/toolbelt/blob/master/requests_toolbelt/multipart/decoder.py
@@ -157,10 +156,10 @@ class MarkLogicHTTPClient:
         decoded = decoder.MultipartDecoder(data, content_type)
         if not decoded.parts:
             raise LocalContentException(
-                f"decoder error: no parts found to decode in {data}"
+                f"decoder error: no parts found to decode in {data!r}"
             )
         if offset > (len(decoded.parts) - 1):
-            l = len(decoder.parts)
+            l = len(decoded.parts)
             raise LocalContentException(
                 f"decoder error: no part {offset} found: len {l}"
             )
@@ -170,7 +169,7 @@ class MarkLogicHTTPClient:
         self,
         sort_by: summaries_sort_by,
         sort_direction: summaries_order_by,
-    ) -> requests.Response:
+    ) -> bytes:
         """
         Summaries gets a list of summaries of documents in the database
         sorted by the sort_by field and ordered either "desc" or "asc".
