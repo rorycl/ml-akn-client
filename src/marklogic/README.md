@@ -79,8 +79,8 @@ Progress software's documentation for MarkLogic can be confusing to
 navigate. I found the following resources the most useful to turn to:
 
 * **[Docs and Intro](https://docs.progress.com/bundle/marklogic-server-understand-concepts-11/page/topics/overview.html)**  
-  An intro to MarkLogic Server as part of the general documentation hub
-  [is here](https://docs.progress.com/category/marklogic-content-hub)
+  An intro to MarkLogic Server as part of the general
+  [documentation hub](https://docs.progress.com/category/marklogic-content-hub)
   documentation.
 
 * **[XQuery and XSLT Reference
@@ -89,7 +89,7 @@ navigate. I found the following resources the most useful to turn to:
   but are also used as programming languages to create applications.
   They are especially powerful as a programming languages to create web
   applications..."  
-  The *XPath Quick Reference* in this chapter is particularly helpful.
+  The *XPath Quick Reference* in this reference is particularly helpful.
 
 * **[Developing Applications in MarkLogic
   Server](https://docs.progress.com/bundle/marklogic-server-develop-server-side-apps-11/page/topics/appdev.html)**  
