@@ -2,11 +2,11 @@
 
 Example API client for processing TNA Akoma Ntosi *Find Case Law* files.
 
-An example Python client for a MarkLogic server utilising XQuery
-server-side modules to process Akoma Ntosi format XML files used for
-parliamentary, legislative and judiciary documents as implemented by
-The National Archives (TNA) for the [Find Case
-Law](https://caselaw.nationalarchives.gov.uk/) initiative.
+An example Python client module called `CaseLawClient` for a MarkLogic
+server utilising XQuery server-side modules to process Akoma Ntosi
+format XML files used for parliamentary, legislative and judiciary
+documents as implemented by The National Archives (TNA) for the [Find
+Case Law](https://caselaw.nationalarchives.gov.uk/) initiative.
 
 ## Aim
 
@@ -63,15 +63,54 @@ models.
 - [x] setup project environment with pytest, ruff, mypy and coc-tsserver
 - [x] add initial python "summaries" pydantic model
 - [x] add "summaries" test
-- [ ] add initial python http client
-- [ ] add http client test
-- [ ] join summaries model and http client in main Client, tests
+- [x] add initial python http client
+- [ ] add http client tests
+- [x] join summaries model and http client in main CaseLawClient, tests
+- [ ] add CaseLawClient tests
 - [ ] extend to "get document" model, tests
 - [ ] extend to "search" model, tests
 
 The Python code is developed using `poetry` and `ruff`.
 
 To run the tests run `poetry run pytest` or `make test`.
+
+## Architecture
+
+```
+.
+├── LICENCE
+├── Makefile
+├── poetry.lock
+├── pyproject.toml
+├── README.md
+├── src
+│   ├── marklogic
+│   │   ├── admin-checks.sh
+│   │   ├── deploy.sh
+│   │   ├── helloworld.sh
+│   │   ├── helloworld.xqy
+│   │   ├── load_documents.sh
+│   │   ├── ml-workspace.xml
+│   │   ├── README.md
+│   │   └── summaries.xqy
+│   ├── README.md
+│   ├── tna_fcl_client
+│   │   ├── caselawclient.py
+│   │   ├── __init__.py
+│   │   ├── models
+│   │   │   ├── __init__.py
+│   │   │   └── summaries.py
+│   │   └── server
+│   │       ├── __init__.py
+│   │       └── marklogic.py
+│   └── variables_example.env
+└── tests
+    ├── __init__.py
+    └── test_summaries.py
+
+7 directories, 23 files
+
+```
 
 ## Licence
 
