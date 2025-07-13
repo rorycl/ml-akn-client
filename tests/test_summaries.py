@@ -2,6 +2,7 @@
 Test the summaries.Summaries xml deserializer
 """
 
+import pytest
 from tna_fcl_client.models import summaries
 
 SUMMARIES_XML = b"""<?xml version="1.0"?>
@@ -24,7 +25,26 @@ SUMMARIES_XML = b"""<?xml version="1.0"?>
 """
 
 
-def test_summaries():
+def test_summaries_empty():
+    """
+    Test to ensure summaries raises a SummariesException when fed
+    empty xml.
+    """
+    with pytest.raises(summaries.SummariesException):
+        summaries.summaries_deserialize(b"")
+
+
+def test_summaries_invalid():
+    """
+    Test to ensure summaries raises a SummariesException when fed
+    incorrect xml.
+    """
+    broken_summaries = b"\nx" + SUMMARIES_XML
+    with pytest.raises(summaries.SummariesException):
+        summaries.summaries_deserialize(broken_summaries)
+
+
+def test_summaries_ok():
     """
     Test if SUMMARIES_XML can be deserialized into a list of two
     Summary within a Summary.

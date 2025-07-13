@@ -13,6 +13,17 @@ from datetime import date
 from typing import List
 
 from pydantic_xml import BaseXmlModel, element
+from pydantic_xml.errors import BaseError
+from xml.etree.ElementTree import ParseError
+
+
+class SummariesException(Exception):
+    """
+    SummariesException wraps exceptions caused by serialization or
+    deserialization of Summaries.
+    """
+
+    pass
 
 
 class Summary(BaseXmlModel, tag="summary"):
@@ -40,4 +51,13 @@ def summaries_deserialize(xml: bytes) -> Summaries:
     summaries_deserialize deserialises an xml string to a list of
     Summaries.
     """
-    return Summaries.from_xml(xml)
+    if xml == b"":
+        raise SummariesException("provided xml bytes are empty")
+    try:
+        return Summaries.from_xml(xml)
+    except BaseError:
+        raise SummariesException(BaseError)
+    except ParseError:
+        raise SummariesException(ParseError)
+    except:
+        raise
