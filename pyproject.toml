@@ -23,6 +23,11 @@ plugins = [
   "pydantic_xml.mypy"
 ]
 
+[[tool.mypy.overrides]]
+# there are no type hints available for requests_toolbelt
+module = ["requests_toolbelt.multipart"]
+follow_untyped_imports = true
+
 [tool.poetry.group.dev.dependencies]
 ipython = "^9.4.0"
 ipdb = "^0.13.13"
