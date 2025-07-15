@@ -12,7 +12,7 @@ from requests import RequestException, HTTPError
 from requests.auth import HTTPDigestAuth
 
 # needed for marklogic multipart responses
-from requests_toolbelt.multipart import decoder
+from requests_toolbelt.multipart import decoder, ImproperBodyPartContentException
 
 # needed for creating post content
 from json import dumps
@@ -20,9 +20,10 @@ from urllib.parse import urljoin
 
 from typing import Literal, ClassVar
 
-# MarkLogic fixed paths
+# MarkLogic fixed paths and timeout
 ML_MODULE_INVOCATION_PATH: str = "/LATEST/invoke"
 ML_MODULE_INTERNAL_PATH: str = "/ext/"
+ML_SERVER_TIMEOUT: int = 3  # 3 seconds
 
 
 class LocalMLException(Exception):
@@ -125,6 +126,7 @@ class MarkLogicHTTPClient:
                 auth=self.auth,
                 data=payload,
                 headers={"Accept": "application/xml"},
+                timeout=ML_SERVER_TIMEOUT,
             )
         except requests.HTTPError as e:
             raise LocalMLException(f"Request exception: {e}") from e
@@ -153,7 +155,10 @@ class MarkLogicHTTPClient:
         """
         if not data:
             return b""
-        decoded = decoder.MultipartDecoder(data, content_type)
+        try:
+            decoded = decoder.MultipartDecoder(data, content_type)
+        except ImproperBodyPartContentException as e:
+            raise LocalContentException(f"Decoding failed: {e}") from e
         if not decoded.parts:
             raise LocalContentException(
                 f"decoder error: no parts found to decode in {data!r}"
