@@ -2,6 +2,10 @@
 
 Example API client for processing TNA Akoma Ntosi *Find Case Law* files.
 
+> [!NOTE]
+> This repo is a work in progress. Progress is noted below in the
+> [database](#database) and [client](#client) sections.
+
 An example Python client module called `CaseLawClient` for a MarkLogic
 server utilising XQuery server-side modules to process Akoma Ntosi
 format XML files used for parliamentary, legislative and judiciary
