@@ -12,6 +12,40 @@ format XML files used for parliamentary, legislative and judiciary
 documents as implemented by The National Archives (TNA) for the [Find
 Case Law](https://caselaw.nationalarchives.gov.uk/) initiative.
 
+## Example
+
+An example of using the `get_summaries` client method:
+
+```
+$ source ../variables.env 
+$ python
+>>> import caselawclient as clc
+>>> from tna_fcl_client.models import summaries
+>>> from tna_fcl_client.server import marklogic as ml
+>>> import os
+>>> http_client = ml.MarkLogicHTTPClient(
+...         scheme="http",
+...         host=os.environ["ML_HOST"],
+...         port=int(os.environ["ML_PORT"]),
+...         username=os.environ["ML_USERNAME"],
+...         password=os.environ["ML_PASSWORD"],
+...     )
+>>> client = clc.CaseLawClient(http_client)
+>>> s = client.get_summaries()
+>>> s.summaries[0]
+Summary(uri='/documents/ewca_civ_2014_885.xml', name='Youssefi v Mussellwhite',
+        judgment_date=datetime.date(2014, 7, 2), court='EWCA-Civil', citation='[2014] EWCA Civ 885')
+>>> s = client.get_summaries(sort_by="date")
+>>> s.summaries[0]
+Summary(uri='/documents/ewhc_ch_2025_16.xml', name='SBP 2 S.À.R.L v 2 SOUTHBANK TENANT LIMITED',
+        judgment_date=datetime.date(2025, 1, 7), court='EWHC-Chancery', citation='[2025] EWHC 16 (Ch)')
+>>> s = client.get_summaries(sort_by="date", sort_direction="asc")
+>>> s.summaries[0]
+Summary(uri='/documents/ewca_civ_2003_1759.xml', name='Tiffany Investments Ltd. & Anor v Bircham & Co Nominees (No 2) Ltd. & Ors',
+        judgment_date=datetime.date(2003, 12, 4), court='EWCA-Civil', citation='[2003] EWCA Civ 1759')
+
+```
+
 ## Aim
 
 The aim of this repo is to become conversant with processing Akoma Ntosi
@@ -68,7 +102,7 @@ models.
 - [x] add initial python "summaries" pydantic model
 - [x] add "summaries" test
 - [x] add initial python http client
-- [ ] add http client tests
+- [x] add http client tests
 - [x] join summaries model and http client in main CaseLawClient, tests
 - [ ] add CaseLawClient tests
 - [ ] extend to "get document" model, tests
