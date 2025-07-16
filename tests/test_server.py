@@ -5,6 +5,8 @@ Test the MarkLogic (ML/ml) server core functions
 import pytest
 from tna_fcl_client.server import marklogic as ml
 from requests.auth import HTTPDigestAuth
+from pytest_httpserver import HTTPServer
+from pytest_httpserver.hooks import Delay
 import secrets
 
 
@@ -201,3 +203,62 @@ def test_post_to_module_error(requests_mock, random_password, valid_multipart_re
         match="Internal Server Error for url: http://localhost:8000/LATEST/invoke",
     ):
         client._post_to_module(module_endpoint="test.xqy", vars={})
+
+
+def test_post_to_module_tcp_ok(httpserver: HTTPServer, random_password):
+    """
+    Test integration with a test TCP server.
+    https://pytest-httpserver.readthedocs.io/en/latest/
+    """
+    client = ml.MarkLogicHTTPClient(username="admin", password=random_password)
+
+    # configure test httpserver
+    httpserver.expect_request(
+        "/LATEST/invoke",
+        method="POST",
+        data="module=%2Fext%2Ftest.xqy&vars=%7B%22key%22%3A+%22value%22%7D",
+    ).respond_with_data(
+        response_data=b"--boundary\r\nContent-Type: application/xml\r\n\r\n<ok/>\r\n--boundary--",
+        content_type="multipart/mixed; boundary=boundary",
+    )
+
+    # redirect client path
+    client.hostpath = httpserver.url_for("/")
+
+    # post
+    result = client._post_to_module(module_endpoint="test.xqy", vars={"key": "value"})
+
+    # check
+    assert result == b"<ok/>"
+
+
+def test_post_to_module_tcp_fail(httpserver: HTTPServer, random_password):
+    """
+    Test catching a slow response from a test TCP server.
+    """
+    client = ml.MarkLogicHTTPClient(username="admin", password=random_password)
+
+    # set the client server timeout to 0.4 seconds
+    ml.ML_SERVER_TIMEOUT = 0.4
+
+    # configure test httpserver
+    httpserver.expect_request(
+        "/LATEST/invoke",
+        method="POST",
+        data="module=%2Fext%2Ftest.xqy&vars=%7B%22key%22%3A+%22value%22%7D",
+    ).with_post_hook(
+        Delay(0.5)  # set the server to delay by 0.5 seconds
+    ).respond_with_data(
+        response_data=b"--boundary\r\nContent-Type: application/xml\r\n\r\n<ok/>\r\n--boundary--",
+        content_type="multipart/mixed; boundary=boundary",
+    )
+
+    # redirect client path
+    client.hostpath = httpserver.url_for("/")
+
+    # post fail due to timeout
+    with pytest.raises(
+        ml.LocalMLException,
+        match="Read timed out.",
+    ):
+        client._post_to_module(module_endpoint="test.xqy", vars={"key": "value"})

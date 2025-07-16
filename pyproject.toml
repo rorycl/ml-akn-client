@@ -38,6 +38,7 @@ pdoc = "^15.0.4"
 pytest-cov = "^6.2.1"
 types-requests = "^2.32.4.20250611"
 requests-mock = "^1.12.1"
+pytest-httpserver = "^1.1.3"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
