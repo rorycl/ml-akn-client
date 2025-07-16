@@ -128,8 +128,9 @@ class MarkLogicHTTPClient:
                 headers={"Accept": "application/xml"},
                 timeout=ML_SERVER_TIMEOUT,
             )
+            r.raise_for_status()
         except requests.HTTPError as e:
-            raise LocalMLException(f"Request exception: {e}") from e
+            raise LocalMLException(f"HTTP exception: {e}") from e
         except RequestException as e:
             raise LocalMLException(f"Request failed: {e}") from e
 

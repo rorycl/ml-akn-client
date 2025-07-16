@@ -66,6 +66,7 @@ def test_marklogic_http_client_init_success(random_password):
 
 # -- multipart testing --#
 
+
 @pytest.fixture
 def valid_multipart_response():
     """
@@ -141,3 +142,62 @@ def test_decode_multipart_failure(
         assert result == b""
 
 
+# -- post testing --#
+
+
+"""
+For information about how to use requests-mock, please see the docs at
+https://requests-mock.readthedocs.io/en/latest/
+The code below uses the `mock.[METHOD]` approach -- see 
+https://requests-mock.readthedocs.io/en/latest/response.html.
+"""
+
+
+def test_post_to_module_success(
+    requests_mock, random_password, valid_multipart_response
+):
+    """
+    Tests a mocked POST to a MarkLogic module that should return success.
+    """
+    client = ml.MarkLogicHTTPClient(username="admin", password=random_password)
+    response_body, content_type = valid_multipart_response
+
+    # setup mock response
+    requests_mock.post(
+        "http://localhost:8000/LATEST/invoke",
+        content=response_body,
+        status_code=200,
+        headers={"Content-Type": content_type},
+    )
+
+    # do mocked post
+    result = client._post_to_module(
+        module_endpoint="test.xqy", vars={"status": "prettygood"}
+    )
+    history = requests_mock.request_history
+
+    # check result and history
+    assert result == b"<result>splendid</result>"
+    assert len(history) == 1
+    assert history[0].method == "POST"
+    assert "test.xqy" in history[0].text
+    assert "prettygood" in history[0].text
+
+
+def test_post_to_module_error(requests_mock, random_password, valid_multipart_response):
+    """
+    Tests a mocked POST to a MarkLogic module that returns a 500 error.
+    """
+    client = ml.MarkLogicHTTPClient(username="admin", password=random_password)
+
+    # setup mock response for a 500 error
+    requests_mock.post(
+        "http://localhost:8000/LATEST/invoke",
+        status_code=500,
+        reason="Internal Server Error",
+    )
+    with pytest.raises(
+        ml.LocalMLException,
+        match="Internal Server Error for url: http://localhost:8000/LATEST/invoke",
+    ):
+        client._post_to_module(module_endpoint="test.xqy", vars={})
