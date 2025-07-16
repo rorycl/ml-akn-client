@@ -232,14 +232,16 @@ def test_post_to_module_tcp_ok(httpserver: HTTPServer, random_password):
     assert result == b"<ok/>"
 
 
-def test_post_to_module_tcp_fail(httpserver: HTTPServer, random_password):
+def test_post_to_module_tcp_fail(httpserver: HTTPServer, random_password, monkeypatch):
     """
     Test catching a slow response from a test TCP server.
+    Monkeypatch is used to temporarily change the ml.ML_SERVER_TIMEOUT timeout from the
+    default.
     """
     client = ml.MarkLogicHTTPClient(username="admin", password=random_password)
 
     # set the client server timeout to 0.4 seconds
-    ml.ML_SERVER_TIMEOUT = 0.4
+    monkeypatch.setattr(ml, "ML_SERVER_TIMEOUT", 0.4)
 
     # configure test httpserver
     httpserver.expect_request(
