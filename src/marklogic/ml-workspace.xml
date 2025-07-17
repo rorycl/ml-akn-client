@@ -10,7 +10,7 @@ return fn:document-uri($each)</query><query name="Get single doc" focus="false" 
 </query><query name="Directory list" focus="false" listorder="5" taborder="5" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">for $each in xdmp:directory("/documents/", "infinity")
 return fn:document-uri($each)</query><query name="cts search progression" focus="false" listorder="6" taborder="6" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
 
-cts:search(fn:doc(), cts:parse("PROGRESSION"))</query><query name="local function" focus="false" listorder="7" taborder="8" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
+cts:search(fn:doc(), cts:parse("judicial"))</query><query name="local function" focus="false" listorder="7" taborder="8" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
 
 declare function local:print-word ($word as xs:string) { fn:upper-case($word) };
 
@@ -51,7 +51,7 @@ declare namespace uk="https://caselaw.nationalarchives.gov.uk/akn";
       let $date :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRdate[@name='judgment']/@date
       let $court := $meta/akn:proprietary/uk:court/text()             
       let $citation := $meta/akn:proprietary/uk:cite/text()
-      where $date&gt;"2024-01-02"
+      where $date&gt;"2020-01-02"
       order by $name descending
       return                                                          
         &lt;summary&gt;                                                     
@@ -62,7 +62,7 @@ declare namespace uk="https://caselaw.nationalarchives.gov.uk/akn";
           &lt;citation&gt;{$citation}&lt;/citation&gt;                            
         &lt;/summary&gt;                                                    
 }                                                                 
-&lt;/summaries&gt; </query><query name="Summaries param 2" focus="false" listorder="11" taborder="11" active="true" database="13008473326162372718" server="12480707483033568391" database-name="Modules" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
+&lt;/summaries&gt; </query><query name="Summaries param 2" focus="false" listorder="11" taborder="11" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
 
 declare namespace akn="http://docs.oasis-open.org/legaldocml/ns/akn/3.0";
 declare namespace tna="https://caselaw.nationalarchives.gov.uk/akn";
@@ -108,4 +108,100 @@ let $final_summaries :=
 return
     &lt;summaries&gt;
         {$final_summaries}
-    &lt;/summaries&gt;</query></workspace></export>
+    &lt;/summaries&gt;</query><query name="Search parts" focus="false" listorder="12" taborder="12" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">declare namespace akn="http://docs.oasis-open.org/legaldocml/ns/akn/3.0";                                    
+declare namespace uk="https://caselaw.nationalarchives.gov.uk/akn";                   
+                                                                      
+&lt;summaries&gt;                                                       
+{                                                                 
+      for $doc in cts:search(fn:doc(), cts:parse("borough"))
+      let $meta := $doc/akn:akomaNtoso/akn:judgment/akn:meta
+      let $decision := $doc/akn:akomaNtoso/akn:judgment/akn:judgmentBody/akn:decision
+      let $uri := fn:document-uri($doc)                               
+      let $name :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRname/@value           
+      let $date :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRdate[@name='judgment']/@date
+      let $court := $meta/akn:proprietary/uk:court/text()             
+      let $citation := $meta/akn:proprietary/uk:cite/text()
+     (: let $hl := cts:highlight($doc, "borough", &lt;b&gt;{$cts:text}&lt;/b&gt;) :)
+      order by $name descending
+      return                                                          
+        &lt;summary&gt;                                                     
+          &lt;uri&gt;{$uri}&lt;/uri&gt;                                           
+          &lt;name&gt;{$name}&lt;/name&gt;                                        
+          &lt;judgmentDate&gt;{$date}&lt;/judgmentDate&gt;                        
+          &lt;court&gt;{$court}&lt;/court&gt;                                     
+          &lt;citation&gt;{$citation}&lt;/citation&gt;
+          &lt;decision&gt;{$decision}&lt;/decision&gt;
+        &lt;/summary&gt;                                                    
+}                                                                 
+&lt;/summaries&gt; </query><query name="Search frags" focus="true" listorder="13" taborder="13" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
+
+declare namespace akn="http://docs.oasis-open.org/legaldocml/ns/akn/3.0";
+declare namespace uk="https://caselaw.nationalarchives.gov.uk/akn";
+import module namespace search = "http://marklogic.com/appservices/search" at "/MarkLogic/appservices/search/search.xqy";
+
+let $options :=
+  &lt;options xmlns="http://marklogic.com/appservices/search"&gt;
+    &lt;transform-results apply="snippet"/&gt;
+    &lt;snippet-format&gt;xml&lt;/snippet-format&gt;
+    &lt;preferred-matches&gt;
+      &lt;element ns="http://docs.oasis-open.org/legaldocml/ns/akn/3.0" name="p"/&gt;
+    &lt;/preferred-matches&gt;
+    &lt;per-match-tokens&gt;30&lt;/per-match-tokens&gt; 
+    &lt;max-matches&gt;3&lt;/max-matches&gt;           
+    &lt;highlight/&gt;
+    &lt;term&gt;
+      &lt;term-option&gt;case-insensitive&lt;/term-option&gt;
+      (: needs stemmed searching turned on for database :)
+      &lt;term-option&gt;stemmed&lt;/term-option&gt;
+    &lt;/term&gt;
+  &lt;/options&gt;
+
+let $query := "Richard Scott"
+
+return
+&lt;summaries&gt;
+{
+  (:
+    Use search:search() instead of cts:search(). It returns a rich &lt;search:response&gt;
+    object containing results with snippets already generated.
+  :)
+  for $result in search:search($query, $options)/search:result
+  let $uri := $result/@uri
+  let $doc := fn:doc($uri)  (: Get the full document node using the URI from the result :)
+
+  (: Extract metadata just like you did before :)
+  let $meta := $doc/akn:akomaNtoso/akn:judgment/akn:meta
+  let $name :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRname/@value
+  let $date :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRdate[@name='judgment']/@date
+  let $court := $meta/akn:proprietary/uk:court/text()
+  let $citation := $meta/akn:proprietary/uk:cite/text()
+
+  (:
+    The snippets are directly available in the search result.
+    The highlighting has already been applied based on our options.
+  :)
+  let $snippets := $result/search:snippet
+
+  order by $name descending
+  return
+    &lt;summary&gt;
+      &lt;uri&gt;{$uri}&lt;/uri&gt;
+      &lt;name&gt;{$name}&lt;/name&gt;
+      &lt;judgmentDate&gt;{$date}&lt;/judgmentDate&gt;
+      &lt;court&gt;{$court}&lt;/court&gt;
+      &lt;citation&gt;{$citation}&lt;/citation&gt;
+      {
+        if ($snippets) then
+          &lt;snippets&gt;
+          {
+            for $s in $snippets
+            return
+              &lt;snippet&gt;{$s/search:match/node()}&lt;/snippet&gt;
+          }
+          &lt;/snippets&gt;
+        else ()
+      }
+    &lt;/summary&gt;
+}
+&lt;/summaries&gt;
+</query></workspace></export>
