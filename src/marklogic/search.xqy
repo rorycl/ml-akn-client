@@ -8,14 +8,14 @@ import module namespace search = "http://marklogic.com/appservices/search" at "/
  : Perform a keyword search and returns summaries with highlighted snippets in html format
  :
  : @param $query-text     : the string to search for.
- : @param $sort-by        : the field to sort results by ('name', 'date', 'court', 'citation').
- : @param $sort-direction : the direction to sort ('asc', 'desc').
+ : @param $sort_by        : the field to sort results by ('name', 'date', 'court', 'citation').
+ : @param $sort_direction : the direction to sort ('asc', 'desc').
  :)
 
 declare function local:perform-search(
   $query as xs:string,
-  $sort-by as xs:string,
-  $sort-direction as xs:string
+  $sort_by as xs:string,
+  $sort_direction as xs:string
 ) as element(summaries)
 {
 
@@ -72,15 +72,13 @@ declare function local:perform-search(
         </term>
       </options>
 
-    return
-    <summaries>
-    {
+    let $summaries :=
       for $result in search:search($query, $options)/search:result
       let $uri := $result/@uri
       let $doc := fn:doc($uri)
       let $meta := $doc/akn:akomaNtoso/akn:judgment/akn:meta
       let $name :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRname/@value
-      let $date :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRdate[@name='judgment']/@date
+      let $date := xs:date($meta/akn:identification/akn:FRBRWork/akn:FRBRdate[@name='judgment']/@date)
       let $court := $meta/akn:proprietary/uk:court/text()
       let $citation := $meta/akn:proprietary/uk:cite/text()
       let $snippets := $result/search:snippet
@@ -92,16 +90,16 @@ declare function local:perform-search(
           <judgmentDate>{$date}</judgmentDate>
           <court>{$court}</court>
           <citation>{$citation}</citation>
-          (: 
-           : This block is concerned with escaping the search:highlight elements
-           : within the search:match results to hand back to the client.
-           : Each snippet is extracted and then put in a temporary root
-           : element, then the XSLT transformer applied. Finally the
-           : sequence of transformed nodes are quoted and string-joined.
-           : I'm hoping to learn of a better way of doing this.
-           :)
           {
             if ($snippets) then
+              (: 
+               : This block is concerned with escaping the search:highlight elements
+               : within the search:match results to hand back to the client.
+               : Each snippet is extracted and then put in a temporary root
+               : element, then the XSLT transformer applied. Finally the
+               : sequence of transformed nodes are quoted and string-joined.
+               : I'm hoping to learn of a better way of doing this.
+               :)
               <snippets>
               {
                 for $s in $snippets
@@ -122,14 +120,39 @@ declare function local:perform-search(
             else () (: don't add anything :)
           }
         </summary>
-    }
-    </summaries>
+
+    (: sort summaries by default ascending :)
+    let $sorted_summaries :=
+        for $summary in $summaries
+        order by
+            (: sort key switch :)
+            switch ($sort_by)
+                case "name" return $summary/name
+                case "date" return $summary/judgmentDate (: cast to date :)
+                case "court" return $summary/court
+                case "citation" return $summary/citation
+                default return xs:date($summary/judgmentDate)
+        ascending
+        return $summary
+
+    (: reverse ordering if required :)
+    let $final_summaries :=
+        if ($sort_direction = "desc")
+        then fn:reverse($sorted_summaries)
+        else $sorted_summaries
+
+    (: wrap summaries in "summaries" root element :)
+    return
+        <summaries>
+            {$final_summaries}
+        </summaries>
+
 };
 
 (: main body :)
 declare variable $query as xs:string external;
-declare variable $sort-by as xs:string external;
-declare variable $sort-direction as xs:string external;
+declare variable $sort_by as xs:string external;
+declare variable $sort_direction as xs:string external;
 
-(: call the function with the external variables. :)
-local:perform-search($query, $sort-by, $sort-direction)
+(: call the function with the external variables supplied from the REST server :)
+local:perform-search($query, $sort_by, $sort_direction)
