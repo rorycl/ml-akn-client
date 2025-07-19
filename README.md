@@ -1,20 +1,26 @@
 # tna-fcl-client
 
-Example API client for processing TNA Akoma Ntosi *Find Case Law* files.
+Example client for interacting with TNA Akoma Ntosi *Find Case Law* files.
 
 > [!NOTE]
 > This repo is a work in progress. Progress is noted below in the
 > [database](#database) and [client](#client) sections.
 
-An example Python client module called `CaseLawClient` for a MarkLogic
-server utilising XQuery server-side modules to process Akoma Ntosi
-format XML files used for parliamentary, legislative and judiciary
-documents as implemented by The National Archives (TNA) for the [Find
-Case Law](https://caselaw.nationalarchives.gov.uk/) initiative.
+An example Python client module called `CaseLawClient` for interacting
+with a MarkLogic server utilising XQuery server-side modules to process
+Akoma Ntosi format XML files used for parliamentary, legislative and
+judiciary documents as implemented by The National Archives (TNA) for
+the [Find Case Law](https://caselaw.nationalarchives.gov.uk/)
+initiative.
+
+Deployment of this repo as set out [in the database
+README](./src/marklogic/README.md) includes incorporating Find Case Law
+records. These documents can be freely accessed and re-used under the
+[Open Justice Licence](https://caselaw.nationalarchives.gov.uk/re-use-find-case-law-records).
 
 ## Example
 
-An example of using the `get_summaries` client method:
+An example of using the client `get_summaries` client method:
 
 ```
 $ source ../variables.env 
@@ -50,26 +56,27 @@ Summary(uri='/documents/ewca_civ_2003_1759.xml', name='Tiffany Investments Ltd. 
 
 The aim of this repo is to become conversant with processing Akoma Ntosi
 format files provided by the TNA's Find Case Law service using a
-MarkLogic database and Python to provide a simple Python API client to a
+MarkLogic database and Python to provide a simple Python client to a
 local database.
 
-The exemplar API calls are intended to be:
+The exemplar client methods are intended to be:
 
-* `get_case_summaries`
+* `get_summaries`
   Get case summaries for all documents in the `examples` collection of
   the `documents` database.
 
 * `search`
   Find documents in the `examples` collection of the `documents`
-  database using simple search terms.
+  database using simple search terms which will return a summary of each
+  document together with some "search snippets" from the search query.
 
 * `get_document`
   Show a document in the `documents` database. 
 
 A clean architecture model is used to separate data processing and the
 marshalling and use of that data by Python. Data transformations are
-performed server-side using XQuery to minimise post-processing for
-performance and re-use of code by different consumers.
+performed server-side using XQuery and XSLT to minimise post-processing
+for performance and re-use of code by different consumers.
 
 ## Database
 
@@ -84,8 +91,8 @@ In the below todo, "ml" refers to the "MarkLogic database and server".
 - [x] upload example AKN files into ml
 - [x] install initial summaries `.xqy` query into ml
 - [x] register initial summaries `.xqy` query as an ml endpoint
+- [x] install and register "search" query and endpoint
 - [ ] install and register "get document" query and endpoint
-- [ ] install and register "search" query and endpoint
 - [ ] automate all of the above
 
 Please read `src/marklogic/README.md` to setup the database, content and
@@ -104,9 +111,9 @@ models.
 - [x] add initial python http client
 - [x] add http client tests
 - [x] join summaries model and http client in main CaseLawClient, tests
+- [ ] extend to "search" model, tests
 - [ ] add CaseLawClient tests
 - [ ] extend to "get document" model, tests
-- [ ] extend to "search" model, tests
 
 The Python code is developed using `poetry` and `ruff`.
 
