@@ -119,6 +119,21 @@ navigate. I found the following resources the most useful to turn to:
   `search:search()` has a richer response than `cts:search()` and
   conveniently includes result snippets.
 
+## Other resources
+
+* **[eXist db XQuery Examples Collection](https://en.wikibooks.org/wiki/XQuery)**  
+  An extensive resource of XQuery examples by users of eXist db.
+
+* **XQuery 2e: Search Across a Variety of XML Data** 
+  Second edition of the O'Reilly book by Priscilla Walmsley
+
+* **XSLT, 2nd Edition** 
+  Second edition of the O'Reilly book by Doug Tidwell
+
+* **XSLT 2.0 and XPath 2.0 Programmer's Reference 4th Edition**  
+  Fourth edition by Michael Kay (Wrox)  
+  Considered by many to be _the_ reference to XSLT and XPath.
+
 ## Docker
 
 Simply run:
