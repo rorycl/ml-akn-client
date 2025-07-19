@@ -114,6 +114,8 @@ curl --digest --user ${ML_USERNAME}:${ML_PASSWORD} -X PUT -i \
 	--data-binary @${FILE} \
 	"http://${ML_HOST}:${ML_PORT}/v1/ext/${ENDPOINT}"
 
+# exit 0
+
 echo "---------------------------------------------------------"
 echo "querying $ENDPOINT"
 echo "---------------------------------------------------------"
@@ -121,5 +123,5 @@ echo "---------------------------------------------------------"
 curl --digest --user ${ML_USERNAME}:${ML_PASSWORD} -i -X POST \
      -H "Content-type: application/x-www-form-urlencoded" \
      --data-urlencode module=/ext/${ENDPOINT} \
-	 --data-urlencode vars='' \
+	 --data-urlencode vars='{"query": "norwich", "sort_by": "date", "sort_direction": "desc"}' \
      http://${ML_HOST}:${ML_PORT}/LATEST/invoke
