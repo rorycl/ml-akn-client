@@ -108,14 +108,14 @@ let $final_summaries :=
 return
     &lt;summaries&gt;
         {$final_summaries}
-    &lt;/summaries&gt;</query><query name="Search parts" focus="false" listorder="12" taborder="12" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">declare namespace akn="http://docs.oasis-open.org/legaldocml/ns/akn/3.0";                                    
+    &lt;/summaries&gt;</query><query name="Search decisions" focus="false" listorder="12" taborder="12" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">declare namespace akn="http://docs.oasis-open.org/legaldocml/ns/akn/3.0";                                    
 declare namespace uk="https://caselaw.nationalarchives.gov.uk/akn";                   
                                                                       
 &lt;summaries&gt;                                                       
 {                                                                 
       for $doc in cts:search(fn:doc(), cts:parse("borough"))
       let $meta := $doc/akn:akomaNtoso/akn:judgment/akn:meta
-      let $decision := $doc/akn:akomaNtoso/akn:judgment/akn:judgmentBody/akn:decision
+      let $decision := $doc/akn:akomaNtoso/akn:judgment/akn:judgmentBody/akn:decision/node()
       let $uri := fn:document-uri($doc)                               
       let $name :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRname/@value           
       let $date :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRdate[@name='judgment']/@date
@@ -133,7 +133,7 @@ declare namespace uk="https://caselaw.nationalarchives.gov.uk/akn";
           &lt;decision&gt;{$decision}&lt;/decision&gt;
         &lt;/summary&gt;                                                    
 }                                                                 
-&lt;/summaries&gt; </query><query name="Search frags" focus="true" listorder="13" taborder="13" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
+&lt;/summaries&gt; </query><query name="Search frags" focus="false" listorder="13" taborder="13" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
 
 declare namespace akn="http://docs.oasis-open.org/legaldocml/ns/akn/3.0";
 declare namespace uk="https://caselaw.nationalarchives.gov.uk/akn";
@@ -144,7 +144,7 @@ let $options :=
     &lt;transform-results apply="snippet"/&gt;
     &lt;snippet-format&gt;xml&lt;/snippet-format&gt;
     &lt;preferred-matches&gt;
-      &lt;element ns="http://docs.oasis-open.org/legaldocml/ns/akn/3.0" name="p"/&gt;
+      &lt;element ns="http://docs.oasis-open.org/legaldocml/ns/akn/3.0" name="p"/&gt; (: target paragraphs :)
     &lt;/preferred-matches&gt;
     &lt;per-match-tokens&gt;30&lt;/per-match-tokens&gt; 
     &lt;max-matches&gt;3&lt;/max-matches&gt;           
@@ -162,24 +162,19 @@ return
 &lt;summaries&gt;
 {
   (:
-    Use search:search() instead of cts:search(). It returns a rich &lt;search:response&gt;
-    object containing results with snippets already generated.
+    search:search() has a richer response than cts:search(), with
+    &lt;search:response&gt; includes result snippets.
   :)
   for $result in search:search($query, $options)/search:result
   let $uri := $result/@uri
-  let $doc := fn:doc($uri)  (: Get the full document node using the URI from the result :)
+  let $doc := fn:doc($uri)  (: get full document from $url :)
 
-  (: Extract metadata just like you did before :)
   let $meta := $doc/akn:akomaNtoso/akn:judgment/akn:meta
   let $name :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRname/@value
   let $date :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRdate[@name='judgment']/@date
   let $court := $meta/akn:proprietary/uk:court/text()
   let $citation := $meta/akn:proprietary/uk:cite/text()
 
-  (:
-    The snippets are directly available in the search result.
-    The highlighting has already been applied based on our options.
-  :)
   let $snippets := $result/search:snippet
 
   order by $name descending
@@ -200,6 +195,388 @@ return
           }
           &lt;/snippets&gt;
         else ()
+      }
+    &lt;/summary&gt;
+}
+&lt;/summaries&gt;
+</query><query name="X Search frags w..." focus="false" listorder="14" taborder="5" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
+
+declare namespace akn="http://docs.oasis-open.org/legaldocml/ns/akn/3.0";
+declare namespace uk="https://caselaw.nationalarchives.gov.uk/akn";
+import module namespace search = "http://marklogic.com/appservices/search" at "/MarkLogic/appservices/search/search.xqy";
+
+let $options :=
+  &lt;options xmlns="http://marklogic.com/appservices/search"&gt;
+    &lt;transform-results apply="snippet"/&gt;
+    &lt;snippet-format&gt;xml&lt;/snippet-format&gt;
+    &lt;preferred-matches&gt;
+      &lt;element ns="http://docs.oasis-open.org/legaldocml/ns/akn/3.0" name="p"/&gt; (: target paragraphs :)
+    &lt;/preferred-matches&gt;
+    &lt;per-match-tokens&gt;30&lt;/per-match-tokens&gt; 
+    &lt;max-matches&gt;3&lt;/max-matches&gt;           
+    &lt;highlight/&gt;
+    &lt;term&gt;
+      &lt;term-option&gt;case-insensitive&lt;/term-option&gt;
+      (: needs stemmed searching turned on for database :)
+      &lt;term-option&gt;stemmed&lt;/term-option&gt;
+    &lt;/term&gt;
+  &lt;/options&gt;
+
+let $query := "Richard Scott"
+
+return
+&lt;summaries&gt;
+{
+  (:
+    search:search() has a richer response than cts:search(), with
+    &lt;search:response&gt; includes result snippets.
+  :)
+  for $result in search:search($query, $options)/search:result
+  let $uri := $result/@uri
+  let $doc := fn:doc($uri)  (: get full doc based on uri :)
+
+  (: metadata extraction matches summaries :)
+  let $meta := $doc/akn:akomaNtoso/akn:judgment/akn:meta
+  let $name :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRname/@value
+  let $date :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRdate[@name='judgment']/@date
+  let $court := $meta/akn:proprietary/uk:court/text()
+  let $citation := $meta/akn:proprietary/uk:cite/text()
+
+  (:
+    The snippets are directly available in the search result.
+    highlighting applied by ML based on options (above).
+  :)
+  let $snippets := $result/search:snippet
+
+  order by $name descending
+  return
+    &lt;summary&gt;
+      &lt;uri&gt;{$uri}&lt;/uri&gt;
+      &lt;name&gt;{$name}&lt;/name&gt;
+      &lt;judgmentDate&gt;{$date}&lt;/judgmentDate&gt;
+      &lt;court&gt;{$court}&lt;/court&gt;
+      &lt;citation&gt;{$citation}&lt;/citation&gt;
+      {
+        if ($snippets) then
+          (: ML's search function returns match/node() results :)
+          &lt;snippets&gt;
+          {
+            for $s in $snippets
+            (: quote nested nodes using xdmp:quote -- see https://docs.marklogic.com/xdmp:quote :)
+            let $escaped-highlighted-html := xdmp:quote($s/search:match/node())
+            return
+              (: &lt;snippet&gt;{$s/search:match/node()}&lt;/snippet&gt; :)
+              &lt;snippet&gt;{$escaped-highlighted-html}&lt;/snippet&gt;
+          }
+          &lt;/snippets&gt;
+        else ()
+      }
+    &lt;/summary&gt;
+}
+&lt;/summaries&gt;
+</query><query name="X Search frags with escaping" focus="false" listorder="15" taborder="14" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
+
+declare namespace akn="http://docs.oasis-open.org/legaldocml/ns/akn/3.0";
+declare namespace uk="https://caselaw.nationalarchives.gov.uk/akn";
+import module namespace search = "http://marklogic.com/appservices/search" at "/MarkLogic/appservices/search/search.xqy";
+
+(: Define the XSLT transformation as a variable :)
+let $transformer :=
+  &lt;xsl:stylesheet version="2.0"
+                  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                  xmlns:search="http://marklogic.com/appservices/search"
+                  exclude-result-prefixes="search"&gt;
+    &lt;xsl:output method="xml" indent="no" omit-xml-declaration="yes"/&gt;
+    &lt;xsl:template match="@*|node()"&gt;
+      &lt;xsl:copy&gt;
+        &lt;xsl:apply-templates select="@*|node()"/&gt;
+      &lt;/xsl:copy&gt;
+    &lt;/xsl:template&gt;
+    &lt;xsl:template match="search:highlight"&gt;
+      &lt;span class="highlight"&gt;
+        &lt;xsl:apply-templates/&gt;
+      &lt;/span&gt;
+    &lt;/xsl:template&gt;
+  &lt;/xsl:stylesheet&gt;
+
+let $options :=
+  &lt;options xmlns="http://marklogic.com/appservices/search"&gt;
+    &lt;transform-results apply="snippet"/&gt;
+    &lt;snippet-format&gt;xml&lt;/snippet-format&gt;
+    &lt;preferred-matches&gt;
+      &lt;element ns="http://docs.oasis-open.org/legaldocml/ns/akn/3.0" name="p"/&gt; (: target paragraphs :)
+    &lt;/preferred-matches&gt;
+    &lt;per-match-tokens&gt;30&lt;/per-match-tokens&gt; 
+    &lt;max-matches&gt;3&lt;/max-matches&gt;           
+    &lt;highlight/&gt;
+    &lt;term&gt;
+      &lt;term-option&gt;case-insensitive&lt;/term-option&gt;
+      (: needs stemmed searching turned on for database :)
+      &lt;term-option&gt;stemmed&lt;/term-option&gt;
+    &lt;/term&gt;
+  &lt;/options&gt;
+  
+let $query := "norwich"
+
+return
+&lt;summaries&gt;
+{
+  for $result in search:search($query, $options)/search:result
+  let $uri := $result/@uri
+  let $doc := fn:doc($uri)
+
+  (: metadata extraction matches summaries :)
+  let $meta := $doc/akn:akomaNtoso/akn:judgment/akn:meta
+  let $name :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRname/@value
+  let $date :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRdate[@name='judgment']/@date
+  let $court := $meta/akn:proprietary/uk:court/text()
+  let $citation := $meta/akn:proprietary/uk:cite/text()
+  let $snippets := $result/search:snippet
+  order by $name descending
+  return
+    &lt;summary&gt;
+      &lt;uri&gt;{$uri}&lt;/uri&gt;
+      &lt;name&gt;{$name}&lt;/name&gt;
+      &lt;judgmentDate&gt;{$date}&lt;/judgmentDate&gt;
+      &lt;court&gt;{$court}&lt;/court&gt;
+      &lt;citation&gt;{$citation}&lt;/citation&gt;
+      {
+        if ($snippets) then
+          &lt;snippets&gt;
+          {
+            for $s in $snippets
+            let $raw-nodes := $s/search:match/node()
+            (: wrap :)
+            let $wrapped-input := &lt;temp-root&gt;{$raw-nodes}&lt;/temp-root&gt;
+            (: xslt transform temp-root :)
+            let $transformed-wrapper := xdmp:xslt-eval($transformer, $wrapped-input)
+            (: extract the nodes in temp-root :)
+            let $transformed-nodes := $transformed-wrapper/node()
+            (: escape content :)
+            let $clean-html := xdmp:quote($transformed-nodes)
+            return
+              &lt;snippet&gt;{$clean-html}&lt;/snippet&gt;
+          }
+          &lt;/snippets&gt;
+        else ()
+      }
+    &lt;/summary&gt;
+}
+&lt;/summaries&gt;
+</query><query name="X xslt-error exa..." focus="false" listorder="16" taborder="15" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
+
+let $transformer :=
+  &lt;xsl:stylesheet version="2.0"
+                  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                  xmlns:search="http://marklogic.com/appservices/search"
+                  exclude-result-prefixes="search"&gt;
+    &lt;xsl:output method="xml" indent="no" omit-xml-declaration="yes"/&gt;
+    &lt;xsl:strip-space elements="*"/&gt;
+    &lt;xsl:template match="search:highlight"&gt;
+      &lt;span class="highlight"&gt;
+        &lt;xsl:apply-templates/&gt;
+      &lt;/span&gt;
+    &lt;/xsl:template&gt;
+  &lt;/xsl:stylesheet&gt;
+
+(: define a string and turn it into an xquery node :)
+let $literalSnippet := xdmp:unquote("&lt;snippet&gt;&lt;temp-root&gt;...per Sir &lt;search:highlight xmlns:search=""http://marklogic.com/appservices/search""&gt;Richard&lt;/search:highlight&gt; V-C in &lt;/temp-root&gt;&lt;/snippet&gt;")
+
+let $transformed := xdmp:xslt-eval($transformer, $literalSnippet)
+let $quoted := xdmp:quote($transformed/node())
+
+return
+  &lt;output&gt;
+  { $quoted }
+  &lt;/output&gt;
+X </query><query name="X Search error wit..." focus="false" listorder="17" taborder="17" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
+
+declare namespace akn="http://docs.oasis-open.org/legaldocml/ns/akn/3.0";
+declare namespace uk="https://caselaw.nationalarchives.gov.uk/akn";
+import module namespace search = "http://marklogic.com/appservices/search" at "/MarkLogic/appservices/search/search.xqy";
+
+(: Define the XSLT transformation as a variable :)
+let $transformer :=
+  &lt;xsl:stylesheet version="2.0"
+                  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                  xmlns:search="http://marklogic.com/appservices/search"
+                  exclude-result-prefixes="search"&gt;
+    &lt;xsl:output method="xml" indent="no" omit-xml-declaration="yes"/&gt;
+    &lt;xsl:strip-space elements="*"/&gt;
+    &lt;xsl:template match="@*|node()"&gt;
+      &lt;xsl:copy&gt;
+        &lt;xsl:apply-templates select="@*|node()"/&gt;
+      &lt;/xsl:copy&gt;
+    &lt;/xsl:template&gt;
+    &lt;xsl:template match="search:highlight"&gt;
+      &lt;span class="highlight"&gt;
+        &lt;xsl:apply-templates/&gt;
+      &lt;/span&gt;
+    &lt;/xsl:template&gt;
+  &lt;/xsl:stylesheet&gt;
+
+let $options :=
+  &lt;options xmlns="http://marklogic.com/appservices/search"&gt;
+    &lt;transform-results apply="snippet"/&gt;
+    &lt;snippet-format&gt;xml&lt;/snippet-format&gt;
+    &lt;preferred-matches&gt;
+      &lt;element ns="http://docs.oasis-open.org/legaldocml/ns/akn/3.0" name="p"/&gt; (: target paragraphs :)
+    &lt;/preferred-matches&gt;
+    &lt;per-match-tokens&gt;30&lt;/per-match-tokens&gt; 
+    &lt;max-matches&gt;3&lt;/max-matches&gt;           
+    &lt;highlight/&gt;
+    &lt;term&gt;
+      &lt;term-option&gt;case-insensitive&lt;/term-option&gt;
+      (: needs stemmed searching turned on for database :)
+      &lt;term-option&gt;stemmed&lt;/term-option&gt;
+    &lt;/term&gt;
+  &lt;/options&gt;
+  
+let $query := "norwich union"
+
+return
+&lt;summaries&gt;
+{
+  for $result in search:search($query, $options)/search:result
+  let $uri := $result/@uri
+  let $doc := fn:doc($uri)  (: get the full doc from uri :)
+
+  (: metadata extraction matches previous summaries :)
+  let $meta := $doc/akn:akomaNtoso/akn:judgment/akn:meta
+  let $name :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRname/@value
+  let $date :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRdate[@name='judgment']/@date
+  let $court := $meta/akn:proprietary/uk:court/text()
+  let $citation := $meta/akn:proprietary/uk:cite/text()
+  let $snippets := $result/search:snippet
+  order by $name descending
+  return
+    &lt;summary&gt;
+      &lt;uri&gt;{$uri}&lt;/uri&gt;
+      &lt;name&gt;{$name}&lt;/name&gt;
+      &lt;judgmentDate&gt;{$date}&lt;/judgmentDate&gt;
+      &lt;court&gt;{$court}&lt;/court&gt;
+      &lt;citation&gt;{$citation}&lt;/citation&gt;
+      {
+        if ($snippets) then
+          &lt;snippets&gt;
+          {
+            for $s in $snippets
+            let $raw-nodes := $s/search:match/node()
+            let $wrapped := &lt;root&gt;{$raw-nodes}&lt;/root&gt;
+            let $transformed-nodes := xdmp:xslt-eval($transformer, $wrapped)
+            let $unwrapped := $transformed-nodes/node()
+            let $escaped-html := xdmp:quote($unwrapped)
+            return
+              &lt;snippet&gt;{$escaped-html}&lt;/snippet&gt;
+          }
+          &lt;/snippets&gt;
+        else ()
+      }
+    &lt;/summary&gt;
+}
+&lt;/summaries&gt;
+</query><query name="Search frags with escaping" focus="true" listorder="18" taborder="18" active="true" database="4783675684447499159" server="12480707483033568391" database-name="Documents" server-name="App-Services" mode="xquery" optimize="1">xquery version "1.0-ml";
+
+declare namespace akn="http://docs.oasis-open.org/legaldocml/ns/akn/3.0";
+declare namespace uk="https://caselaw.nationalarchives.gov.uk/akn";
+import module namespace search = "http://marklogic.com/appservices/search" at "/MarkLogic/appservices/search/search.xqy";
+  
+let $query := "Scott"
+
+(: # Search config
+per-match-tokens:
+   max number of tokens (typically words) per matching node that surround the highlighted term(s) in the snippet
+max-matches:
+   The maximum number of nodes containing a highlighted term that will display in the snippet.
+max-snippet-chars:
+   Limit total snippet size to this many characters
+See: https://docs.progress.com/bundle/marklogic-server-use-search-11/page/topics/query-options.html
+:)
+let $per-match-tokens := 30
+let $max-matches := 3  
+let $max-snippet-chars := 200
+
+(: define XSLT transformation :)
+let $transformer :=
+  &lt;xsl:stylesheet version="2.0"
+                  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                  xmlns:search="http://marklogic.com/appservices/search"
+                  exclude-result-prefixes="search"&gt;
+    &lt;xsl:output method="xml" indent="no" omit-xml-declaration="yes"/&gt;
+    &lt;xsl:strip-space elements="*"/&gt;
+    &lt;xsl:template match="@*|node()"&gt;
+      &lt;xsl:copy&gt;
+        &lt;xsl:apply-templates select="@*|node()"/&gt;
+      &lt;/xsl:copy&gt;
+    &lt;/xsl:template&gt;
+    &lt;xsl:template match="search:highlight"&gt;
+      &lt;span class="highlight"&gt;
+        &lt;xsl:apply-templates/&gt;
+      &lt;/span&gt;
+    &lt;/xsl:template&gt;
+  &lt;/xsl:stylesheet&gt;
+
+(: define search options :)
+let $options :=
+  &lt;options xmlns="http://marklogic.com/appservices/search"&gt;
+    &lt;transform-results apply="snippet"/&gt;
+    &lt;snippet-format&gt;xml&lt;/snippet-format&gt;
+    &lt;preferred-matches&gt;
+      &lt;element ns="http://docs.oasis-open.org/legaldocml/ns/akn/3.0" name="p"/&gt; (: only search the "p" or paragraph items :)
+    &lt;/preferred-matches&gt;
+
+    &lt;per-match-tokens&gt;{$per-match-tokens}&lt;/per-match-tokens&gt; 
+    &lt;max-matches&gt;{$max-matches}&lt;/max-matches&gt;
+    &lt;max-snippet-chars&gt;{$max-snippet-chars}&lt;/max-snippet-chars&gt;
+    
+    (: highlight config is not parametarized at this point :)
+    &lt;highlight/&gt;
+    &lt;term&gt;
+      &lt;term-option&gt;case-insensitive&lt;/term-option&gt;
+      &lt;term-option&gt;stemmed&lt;/term-option&gt;
+    &lt;/term&gt;
+  &lt;/options&gt;
+
+return
+&lt;summaries&gt;
+{
+  for $result in search:search($query, $options)/search:result
+  let $uri := $result/@uri
+  let $doc := fn:doc($uri)
+  let $meta := $doc/akn:akomaNtoso/akn:judgment/akn:meta
+  let $name :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRname/@value
+  let $date :=  $meta/akn:identification/akn:FRBRWork/akn:FRBRdate[@name='judgment']/@date
+  let $court := $meta/akn:proprietary/uk:court/text()
+  let $citation := $meta/akn:proprietary/uk:cite/text()
+  let $snippets := $result/search:snippet
+  order by $name descending
+  return
+    &lt;summary&gt;
+      &lt;uri&gt;{$uri}&lt;/uri&gt;
+      &lt;name&gt;{$name}&lt;/name&gt;
+      &lt;judgmentDate&gt;{$date}&lt;/judgmentDate&gt;
+      &lt;court&gt;{$court}&lt;/court&gt;
+      &lt;citation&gt;{$citation}&lt;/citation&gt;
+      {
+        if ($snippets) then
+          &lt;snippets&gt;
+          {
+            for $s in $snippets
+            let $raw-nodes := $s/search:match/node()
+            let $wrapped-input := &lt;temp-root&gt;{$raw-nodes}&lt;/temp-root&gt;
+            let $transformed-wrapper := xdmp:xslt-eval($transformer, $wrapped-input)
+            (: join the sequence of items (some of which are nodes) in transformed-wrapper into a string by iterating over each item :)
+            let $clean-html := fn:string-join(
+              for $node in $transformed-wrapper/temp-root/node()
+              return xdmp:quote($node)
+            )
+            (: add &lt;raw&gt;{$raw-nodes}&lt;/raw&gt; withing snippet for debugging :)
+            return
+              &lt;snippet&gt;{$clean-html}&lt;/snippet&gt;
+          }
+          &lt;/snippets&gt;
+          
+        else () (: don't add anything :)
       }
     &lt;/summary&gt;
 }
