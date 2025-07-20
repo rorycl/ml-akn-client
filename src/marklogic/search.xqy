@@ -1,3 +1,16 @@
+(:
+project : tna-fcl-client 
+type    : marklogic xquery .xqy file
+
+purpose : search database documents in AKN + TNA format
+          with summaries and search snippets
+          AKN: Akoma Ntoso Naming Convention Version 3.0 
+          TNA: The UK National Archives AKN extensions
+
+author  : Rory Campbell-Lange
+started : 19 July 2025
+:)
+
 xquery version "1.0-ml";
 
 declare namespace akn="http://docs.oasis-open.org/legaldocml/ns/akn/3.0";
@@ -5,7 +18,7 @@ declare namespace uk="https://caselaw.nationalarchives.gov.uk/akn";
 import module namespace search = "http://marklogic.com/appservices/search" at "/MarkLogic/appservices/search/search.xqy";
 
 (:~
- : Perform a keyword search and returns summaries with highlighted snippets in html format
+ : Perform a keyword search and returns summaries with highlighted snippets in html format.
  :
  : @param $query-text     : the string to search for.
  : @param $sort_by        : the field to sort results by ('name', 'date', 'court', 'citation').
