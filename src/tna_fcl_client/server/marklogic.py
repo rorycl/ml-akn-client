@@ -8,7 +8,7 @@ Date      : 13 July 2025
 """
 
 import requests
-from requests import RequestException, HTTPError
+from requests import RequestException
 from requests.auth import HTTPDigestAuth
 
 # needed for marklogic multipart responses
@@ -18,7 +18,7 @@ from requests_toolbelt.multipart import decoder, ImproperBodyPartContentExceptio
 from json import dumps
 from urllib.parse import urljoin
 
-from typing import Literal, ClassVar
+from typing import Literal
 
 # MarkLogic fixed paths and timeout
 ML_MODULE_INVOCATION_PATH: str = "/LATEST/invoke"
@@ -165,9 +165,9 @@ class MarkLogicHTTPClient:
                 f"decoder error: no parts found to decode in {data!r}"
             )
         if offset > (len(decoded.parts) - 1):
-            l = len(decoded.parts)
+            part_len = len(decoded.parts)
             raise LocalContentException(
-                f"decoder error: no part {offset} found: len {l}"
+                f"decoder error: no part {offset} found: len {part_len}"
             )
         return decoded.parts[offset].content  # content is bytes, text is unicode
 
@@ -184,4 +184,21 @@ class MarkLogicHTTPClient:
         return self._post_to_module(
             module_endpoint="summaries.xqy",
             vars={"sort_by": sort_by, "sort_direction": sort_direction},
+        )
+
+    def search(
+        self,
+        query: str,
+        sort_by: summaries_sort_by,
+        sort_direction: summaries_order_by,
+    ) -> bytes:
+        """
+        Search searches the documents in the database for the query term using the
+        server "search:search" routine which returns summary items possibly decorated
+        with snippets showing the context of the search hits.
+        The XQuery counterpart to this function is marklogic/search.xqy
+        """
+        return self._post_to_module(
+            module_endpoint="search.xqy",
+            vars={"query": query, "sort_by": sort_by, "sort_direction": sort_direction},
         )
