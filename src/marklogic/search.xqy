@@ -79,13 +79,27 @@ declare function local:perform-search(
         element summary {
           $summary/node(),  (: copy all nodes from the base summary :)
           if ($snippets) then
+            (: 
+             : This block is concerned with escaping the search:highlight elements
+             : within the search:match results to hand back to the client.
+             : Each snippet is extracted and then put in a temporary root
+             : element, then the XSLT transformer applied. Finally the
+             : sequence of transformed nodes are quoted and string-joined.
+             : I'm hoping to learn of a better way of doing this.
+             :)
             <snippets>
             {
               for $s in $snippets
               let $wrapped-input := <temp-root>{$s/search:match/node()}</temp-root>
               let $transformed-wrapper := xdmp:xslt-eval($transformer, $wrapped-input)
-              let $clean-html := xdmp:quote($transformed-wrapper/node())
-              return <snippet>{$clean-html}</snippet>
+              (: join the sequence of items (some of which are nodes) in transformed-wrapper into a string by iterating over each item :)
+              let $clean-html := fn:string-join(
+                for $node in $transformed-wrapper/temp-root/node()
+                  return xdmp:quote($node)
+              )
+              (: add <raw>{$wrapped-input}</raw> within snippet for debugging :)
+              return
+                <snippet>{$clean-html}</snippet>
             }
             </snippets>
           else ()
