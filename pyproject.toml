@@ -1,5 +1,5 @@
 [project]
-name = "tna-fcl-client"
+name = "ml-akn-client"
 version = "0.1.0"
 description = ""
 authors = [
@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [tool.poetry]
-packages = [{include = "tna_fcl_client", from = "src"}]
+packages = [{include = "ml_akn_client", from = "src"}]
 
 [tool.mypy]
 plugins = [

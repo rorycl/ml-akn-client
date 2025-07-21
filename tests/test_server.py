@@ -3,7 +3,7 @@ Test the MarkLogic (ML/ml) server core functions
 """
 
 import pytest
-from tna_fcl_client.server import marklogic as ml
+from ml_akn_client.server import marklogic as ml
 from requests.auth import HTTPDigestAuth
 from pytest_httpserver import HTTPServer
 from pytest_httpserver.hooks import Delay

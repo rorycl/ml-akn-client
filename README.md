@@ -26,8 +26,8 @@ An example of using the client `get_summaries` client method:
 $ source ../variables.env 
 $ python
 >>> import caselawclient as clc
->>> from tna_fcl_client.models import summaries
->>> from tna_fcl_client.server import marklogic as ml
+>>> from ml_akn_client.models import summaries
+>>> from ml_akn_client.server import marklogic as ml
 >>> import os
 >>> http_client = ml.MarkLogicHTTPClient(
 ...         scheme="http",
@@ -100,7 +100,7 @@ server-side functions.
 
 ## Client
 
-The `src/tna_fcl_client/` part of this repo provides the Python API
+The `src/ml_akn_client/` part of this repo provides the Python API
 client implemented using authenticated http GET calls and pydantic
 models.
 
@@ -139,7 +139,7 @@ To run the tests run `poetry run pytest` or `make test`.
 │   │   ├── README.md
 │   │   └── summaries.xqy
 │   ├── README.md
-│   ├── tna_fcl_client
+│   ├── ml_akn_client
 │   │   ├── caselawclient.py
 │   │   ├── __init__.py
 │   │   ├── models

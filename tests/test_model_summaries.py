@@ -3,7 +3,7 @@ Test the summaries.Summaries xml deserializer
 """
 
 import pytest
-from tna_fcl_client.models import summaries
+from ml_akn_client.models import summaries
 
 SUMMARIES_XML = b"""<?xml version="1.0"?>
 <summaries>

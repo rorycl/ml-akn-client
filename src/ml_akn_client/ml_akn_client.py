@@ -13,8 +13,8 @@ deserialization into Pydantic models.
 
 Example Usage:
     import os
-    from tna_fcl_client.server import marklogic as ml
-    from tna_fcl_client.client import caselawclient as cl
+    from ml_akn_client.server import marklogic as ml
+    from ml_akn_client.client import caselawclient as cl
 
     # configure the underlying HTTP client with connection details.
     http_client = ml.MarkLogicHTTPClient(
@@ -50,9 +50,9 @@ Example Usage:
 # Started by: rorycl
 # Date      : 13 July 2025
 
-from tna_fcl_client.models import summaries
-from tna_fcl_client.models import search
-from tna_fcl_client.server import marklogic as ml
+from ml_akn_client.models import summaries
+from ml_akn_client.models import search
+from ml_akn_client.server import marklogic as ml
 
 
 class ClientException(Exception):

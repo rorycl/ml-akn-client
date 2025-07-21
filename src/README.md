@@ -4,7 +4,7 @@ src directory readme
 
 ## General
 
-The python sources are in `tna_fcl_client/`.
+The python sources are in `ml_akn_client/`.
 
 The marklogic sources are in `marklogic/'. 
 
