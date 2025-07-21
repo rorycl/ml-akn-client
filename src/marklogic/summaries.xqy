@@ -1,77 +1,36 @@
-(:
-project : tna-fcl-client 
-type    : marklogic xquery .xqy file
-
-purpose : summarize database documents in AKN + TNA format
-          AKN: Akoma Ntoso Naming Convention Version 3.0 
-          TNA: The UK National Archives AKN extensions
-
-author  : Rory Campbell-Lange
-started : 12 July 2025
-:)
-
+(: file: summaries.xqy :)
 xquery version "1.0-ml";
 
-declare namespace akn="http://docs.oasis-open.org/legaldocml/ns/akn/3.0";
-declare namespace tna="https://caselaw.nationalarchives.gov.uk/akn";
+(: import summaries library module :)
+import module namespace lib = "http://caselaw.nationalarchives.gov.uk/lib/summaries"
+  at "/ext/summaries-lib.xqy";
 
-(:~
- : List summaries in the database.
- :
- : @param $sort_by        : the field to sort results by ('name', 'date', 'court', 'citation').
- : @param $sort_direction : the direction to sort ('asc', 'desc').
- :)
-
+(: local function :)
 declare function local:perform-summaries(
   $sort_by as xs:string,
   $sort_direction as xs:string
 ) as element(summaries)
 {
+  (: generate summaries by calling the library function for each doc :)
+  let $unsorted_summaries :=
+    for $doc in collection("examples")
+    return lib:get-summary($doc)
 
-    (: construct summary data :)
-    let $summaries :=
-        for $doc in collection("examples")
-        let $meta := $doc/akn:akomaNtoso/akn:judgment/akn:meta
-        return
-          <summary>
-            <uri>{fn:document-uri($doc)}</uri>
-            <name>{$meta/akn:identification/akn:FRBRWork/akn:FRBRname/@value/string()}</name>
-            <judgmentDate>{$meta/akn:identification/akn:FRBRWork/akn:FRBRdate[@name='judgment']/@date/string()}</judgmentDate>
-            <court>{$meta/akn:proprietary/tna:court/text()}</court>
-            <citation>{$meta/akn:proprietary/tna:cite/text()}</citation>
-          </summary>
+  (: sort summaries using the library function :)
+  let $sorted_summaries := lib:sort-summaries(
+    $unsorted_summaries,
+    $sort_by,
+    $sort_direction
+  )
 
-    (: sort summaries by default ascending :)
-    let $sorted_summaries :=
-        for $summary in $summaries
-        order by
-            (: sort key switch :)
-            switch ($sort_by)
-                case "name" return $summary/name
-                case "date" return xs:date($summary/judgmentDate) (: cast to date :)
-                case "court" return $summary/court
-                case "citation" return $summary/citation
-                default return xs:date($summary/judgmentDate)
-        ascending
-        return $summary
-
-    (: reverse ordering if required :)
-    let $final_summaries :=
-        if ($sort_direction = "desc")
-        then fn:reverse($sorted_summaries)
-        else $sorted_summaries
-
-    (: wrap summaries in "summaries" root element :)
-    return
-        <summaries>
-            {$final_summaries}
-        </summaries>
-
+  (: wrap the result :)
+  return
+    <summaries>
+      {$sorted_summaries}
+    </summaries>
 };
 
-(: parameters :)
-declare variable $sort_by as xs:string external := "date";        
+(: main :)
+declare variable $sort_by as xs:string external := "date";
 declare variable $sort_direction as xs:string external := "desc";
-
-(: call the function with the external variables supplied from the REST server :)
 local:perform-summaries($sort_by, $sort_direction)
