@@ -45,7 +45,7 @@ class SearchSummary(Summary, tag="summary"):
     records.
     """
 
-    snippets: List[Snippet] | None = element(tag="snippets")
+    snippets: List[Snippet] = element(tag="snippets")
 
 
 class SearchSummaries(BaseXmlModel, tag="summaries"):
