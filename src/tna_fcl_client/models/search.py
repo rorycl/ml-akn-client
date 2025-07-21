@@ -15,6 +15,7 @@ from typing import List
 
 from pydantic_xml import BaseXmlModel, element
 from pydantic_xml.errors import BaseError
+from pydantic import ValidationError
 from xml.etree.ElementTree import ParseError
 
 from .summaries import Summary, SummariesException
@@ -65,9 +66,11 @@ def search_summaries_deserialize(xml: bytes) -> SearchSummaries:
         raise SearchSummariesException("provided xml bytes are empty")
     try:
         return SearchSummaries.from_xml(xml)
-    except BaseError:
-        raise SearchSummariesException(BaseError)
-    except ParseError:
+    except ValidationError:  # pydantic core validation error
+        raise SearchSummariesException(ValidationError)
+    except ParseError:  # xml parsing error
         raise SearchSummariesException(ParseError)
+    except BaseError:  # base package error
+        raise SearchSummariesException(BaseError)
     except:
         raise
