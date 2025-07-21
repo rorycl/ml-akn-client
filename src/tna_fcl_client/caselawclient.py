@@ -1,21 +1,22 @@
 """
-A client for retrieving case law data from a MarkLogic REST server.
+A client for retrieving Akoma Ntoso format data from a MarkLogic REST server.
 
-This module provides a high-level client called "CaseLawClient" for
-interacting with a MarkLogic (ML/ml) database providing server-side XQuery and
-XSLT processing. The ML database is a stand-in for The National Archives'
-(TNA) Find Case Law database of judicial records in Akoma Ntoso XML format
-with TNA extensions.
+This module provides a high-level client called "CaseLawClient" for interacting with a
+MarkLogic (ML/ml) database to retrieve data from Akoma Ntoso (AKN) judicial records
+files. These files follow those used by the UK's The National Archives (TNA) Find Case
+Law (FCL) initiative.
 
-This client encapsulates the details of interaction with an ML database
-exposed over REST and the related data deserialization into Pydantic models.
+This project provides a means for exploring AKN file server-side processing using XQuery
+and XSLT with no XML processing or escaping on the client. This client encapsulates the
+details of interaction with an ML database exposed over REST and the related data
+deserialization into Pydantic models.
 
 Example Usage:
     import os
     from tna_fcl_client.server import marklogic as ml
     from tna_fcl_client.client import caselawclient as cl
 
-    # 1. Configure the underlying HTTP client with connection details.
+    # configure the underlying HTTP client with connection details.
     http_client = ml.MarkLogicHTTPClient(
         host=os.environ.get("ML_HOST", "localhost"),
         port=int(os.environ.get("ML_PORT", "8000")),
@@ -23,22 +24,34 @@ Example Usage:
         password=os.environ["ML_PASSWORD"],
     )
 
-    # 2. Inject the HTTP client into the CaseLawClient.
+    # inject the HTTP client into the CaseLawClient.
     client = cl.CaseLawClient(http_client)
 
-    # 3. Call a method to retrieve and parse data.
+    # call a method to retrieve and parse data.
     try:
         summaries_data = client.get_summaries(sort_by="date")
-        for summary in summaries_data.summaries:
-            print(f"{summary.judgment_date}: {summary.name}")
     except cl.ClientException as e:
         print(f"An error occurred: {e}")
+    for summary in summaries_data.summaries:
+        print(f"{summary.judgment_date}: {summary.name}")
+
+    # search
+    try:
+        search_data = client.search(query="Scott")
+    except cl.ClientException as e:
+        print(f"An error occurred: {e}")
+    for summary in search_data.summaries:
+        print(f"{summary.judgment_date}: {summary.name}")
+        for snippet := range summary.snippets:
+        print(f"   {snippet.snippet}")
+
 """
 
 # Started by: rorycl
 # Date      : 13 July 2025
 
 from tna_fcl_client.models import summaries
+from tna_fcl_client.models import search
 from tna_fcl_client.server import marklogic as ml
 
 
@@ -129,10 +142,60 @@ class CaseLawClient:
             raise ClientException(f"Failed to deserialize summary data: {err}") from err
         return s
 
+    def search(
+        self,
+        query: str,
+        sort_by: ml.MarkLogicHTTPClient.summaries_sort_by = "name",
+        sort_direction: ml.MarkLogicHTTPClient.summaries_order_by = "desc",
+    ) -> search.SearchSummaries:
+        """
+        Search for documents containing a term, returning document summaries and snippets.
+
+        search calls the `search.xqy` module on the MarkLogic server, requesting those
+        Akoma Ntoso documents which match the search term provided. The result summaries
+        include search "snippets" from the matching documents. Results are sorted
+        according to the provided parameters as for the `get_summaries` method. The raw
+        XML response is deserialized into a `summaries.SearchSummaries` Pydantic object.
+
+        Args:
+            query: The search term to use.
+            sort_by: The field to sort the summaries by.
+                     Must be one of "name", "date", "court", or "citation".
+                     Defaults to "name".
+            sort_direction: The direction of the sort.
+                            Must be either "desc" or "asc".
+                            Defaults to "desc".
+
+        Returns:
+            A `summaries.SearchSummaries` object containing a list of `Summary` objects
+            decorated with search result snippets as returned from the MarkLogic
+            `search:search` function.
+
+        Raises:
+            ClientException: If the server request fails, the connection
+                             times out, or if the returned XML data cannot be
+                             deserialized into the expected format.
+
+        """
+        try:
+            part = self.ml_client.search(query, sort_by, sort_direction)
+        except ml.LocalMLException as err:
+            raise ClientException(
+                f"Failed to retrieve search results from server: {err}"
+            ) from err
+
+        try:
+            s = search.search_summaries_deserialize(part)
+        except summaries.SummariesException as err:  # generic class error
+            raise ClientException(f"Failed to deserialize search data: {err}") from err
+        print(s)
+        return s
+
 
 # Code for simple demonstrations and ad-hoc testing.
 if __name__ == "__main__":
     import os
+
     try:
         http_client = ml.MarkLogicHTTPClient(
             scheme="http",
@@ -141,21 +204,42 @@ if __name__ == "__main__":
             username=os.environ["ML_USERNAME"],
             password=os.environ["ML_PASSWORD"],
         )
-        client = CaseLawClient(http_client)
-        print("Fetching summaries sorted by name (descending)...")
-        summaries_data = client.get_summaries(sort_by="name", sort_direction="desc")
-
-        if summaries_data.summaries:
-            for sm in summaries_data.summaries:
-                print(f"  - {sm.citation}: {sm.name}")
-        else:
-            print("No summaries found.")
-
     except KeyError as e:
         print(
             f"Error: Environment variable {e} not set. Please set ML_HOST, ML_PORT, etc."
         )
-    except ClientException as e:
-        print(f"An error occurred during client operation: {e}")
     except ml.MisconfigurationException as e:
         print(f"HTTP client misconfiguration: {e}")
+
+    # init client
+    client = CaseLawClient(http_client)
+
+    # get_summaries
+    print("Fetching summaries sorted by name (descending)...")
+    try:
+        summaries_data = client.get_summaries(sort_by="name", sort_direction="desc")
+    except ClientException as e:
+        print(f"An error occurred during client operation: {e}")
+
+    if summaries_data.summaries:
+        for sm in summaries_data.summaries:
+            print(f"  - {sm.citation}: {sm.name}")
+    else:
+        print("No summaries found.")
+
+    # search
+    print("Searching for records with the name 'Scott'...")
+    try:
+        search_data = client.search(
+            query="Scott", sort_by="name", sort_direction="desc"
+        )
+    except ClientException as e:
+        print(f"An error occurred during client operation: {e}")
+
+    if search_data.summaries:
+        for sm in search_data.summaries:
+            print(f"  - {sm.citation}: {sm.name}")
+            for snippet in sm.snippets:
+                print(f"    snippet: {snippet.snippet}")
+    else:
+        print("No search results found.")
