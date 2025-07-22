@@ -3,6 +3,9 @@ CURDIR := $(shell pwd)
 
 
 test:
+	poetry run pytest
+
+test-interactive:
 	# -s is to allow dropping into an ipdb debugger
 	poetry run pytest -s
 
@@ -19,7 +22,7 @@ check-syntax:
 check-format:
 	poetry run ruff format .
 
-check-all: check-types check-syntax check-format
+check-all: check-types check-syntax check-format test
 
 testme:
 	echo $(HEREGOPATH)
